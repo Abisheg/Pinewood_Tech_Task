@@ -1,0 +1,204 @@
+﻿@model List<PinewoodAssessment.Models.Customer>
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<h1>Customer Details</h1>
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">
+            Name
+        </dt>
+        <dt class="col-sm-2">
+            Organization
+        </dt>
+        <dt class="col-sm-2">
+            Address
+        </dt>
+        <dt class="col-sm-2">
+            Contact
+        </dt>
+        <dt class="col-sm-2">
+
+        </dt>
+        <dt class="col-sm-2">
+
+        </dt>
+    </dl>
+    <hr />@foreach (var item in Model)
+    {
+        if (item.IsActive == true)
+        {
+            <dl class="row">
+                <dt class="col-sm-2">
+                    @item.Name
+                </dt>
+                <dt class="col-sm-2">
+                    @item.Organization
+                </dt>
+                <dt class="col-sm-2">
+                    @item.Address
+                </dt>
+                <dt class="col-sm-2">
+                    @item.Contact
+                </dt>
+                <dt class="col-sm-2">
+                    <a href="javascript:void(0);" onclick="openpopup(@item.Id,'edit')">Edit</a>
+                </dt>
+                <dt class="col-sm-2">
+                    <a href="javascript:void(0);" onclick="openpopup(@item.Id,'delete')">Delete</a>
+                </dt>
+            </dl>
+        }
+    }
+    <button id="btnAdd" type="button" onclick="openpopup('','add')" class="btn btn-primary">Add</button>
+
+</div>
+<div class="modal" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Information</h4>
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Textbox 1 -->
+                <div class="form-group">
+                    <label for="txtName">Name:</label>
+                    <input type="text" class="form-control" id="txtName">
+                </div>
+
+                <!-- Textbox 2 -->
+                <div class="form-group">
+                    <label for="txOrg">Organization:</label>
+                    <input type="text" class="form-control" id="txtOrg">
+                </div>
+
+                <!-- Textbox 3 -->
+                <div class="form-group">
+                    <label for="txtAddress">Address:</label>
+                    <input type="text" class="form-control" id="txtAddress">
+                </div>
+                <div class="form-group">
+                    <label for="txtContact">Contact:</label>
+                    <input type="text" class="form-control" id="txtContact">
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button id="modalClose" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="modalAdd" onclick="saveCustomer('add')" type="button" class="btn btn-primary">Add Changes</button>
+                <button id="modalEdit" onclick="saveCustomer('edit')" type="button" class="btn btn-primary">Edit Changes</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+
+    var global_id = '0';
+    function openpopup(id, type) {
+        var customers = @Html.Raw(Json.Serialize(Model))
+            if (type === 'edit') {
+            customers.forEach(function (customer) {
+                if (customer.id === id) {
+                    $('#txtName').val(customer.name)
+                    $('#txtOrg').val(customer.organization)
+                    $('#txtAddress').val(customer.address)
+                    $('#txtContact').val(customer.contact)
+                    global_id = id;
+                }
+            });
+            $('#modalAdd').hide();
+            $('#modalEdit').show();
+            openModal();
+        }
+        else if (type === 'add') {
+
+            $('#txtName, #txtOrg, #txtAddress,#txtContact').val('');
+            $('#modalAdd').show();
+            $('#modalEdit').hide();
+            global_id = '0';
+            openModal();
+
+        }
+        else if (type === 'delete') {
+            deleteCustomer(id);
+        }
+    }
+
+    function openModal() {
+        $('#myModal').modal('show');
+    }
+
+    function closeModal() {
+        $('#myModal').modal('hide');
+    }
+    function saveCustomer(type) {
+        var newCustomer = {
+            name: $('#txtName').val(),
+            organization: $('#txtOrg').val(),
+            address: $('#txtAddress').val(),
+            contact: $('#txtContact').val(),
+            id: global_id
+
+        };
+
+        if (type === 'add') {
+                $.ajax({
+                    type: "POST",
+                    url: "/Home/AddCustomer",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(newCustomer),
+                    success: function (data) {
+                    location.reload();
+                    },
+                    error: function (error) {
+                        console.error("Error adding customer", error);
+                    }
+                });
+        }
+        else if (type === 'edit') {
+            $.ajax({
+                type: "POST",
+                url: "/Home/UpdateCustomer",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(newCustomer),
+                success: function (data) {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.error("Error adding customer", error);
+                }
+            });
+        }
+    }
+
+    function deleteCustomer(id) {
+        var newCustomer = {
+            id: id
+        };
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Home/DeleteCustomer",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(newCustomer),
+            success: function (data) {
+                location.reload();
+            },
+            error: function (error) {
+                console.error("Error adding customer", error);
+            }
+        });
+    }
+
+</script>
+
